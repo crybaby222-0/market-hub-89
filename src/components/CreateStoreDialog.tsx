@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
+import { Upload } from 'lucide-react';
 
 interface CreateStoreDialogProps {
   onStoreCreated?: () => void;
@@ -21,6 +22,20 @@ export function CreateStoreDialog({ onStoreCreated, children }: CreateStoreDialo
     name: '',
     description: '',
   });
+  const [logoFile, setLogoFile] = useState<File | null>(null);
+  const [logoPreview, setLogoPreview] = useState<string>('');
+
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setLogoFile(file);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setLogoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,6 +49,27 @@ export function CreateStoreDialog({ onStoreCreated, children }: CreateStoreDialo
         .replace(/[^a-z0-9]+/g, '-')
         .replace(/^-|-$/g, '');
 
+      let logoUrl = '';
+      
+      // Upload logo if provided
+      if (logoFile) {
+        const fileExt = logoFile.name.split('.').pop();
+        const fileName = `${user.id}-${Date.now()}.${fileExt}`;
+        const filePath = `${fileName}`;
+
+        const { error: uploadError } = await supabase.storage
+          .from('store-logos')
+          .upload(filePath, logoFile);
+
+        if (uploadError) throw uploadError;
+
+        const { data: { publicUrl } } = supabase.storage
+          .from('store-logos')
+          .getPublicUrl(filePath);
+
+        logoUrl = publicUrl;
+      }
+
       const { error } = await supabase
         .from('stores')
         .insert([
@@ -42,6 +78,7 @@ export function CreateStoreDialog({ onStoreCreated, children }: CreateStoreDialo
             name: formData.name,
             description: formData.description,
             slug: slug,
+            logo_url: logoUrl || null,
             is_active: true,
           },
         ]);
@@ -51,6 +88,8 @@ export function CreateStoreDialog({ onStoreCreated, children }: CreateStoreDialo
       toast.success('Loja criada com sucesso!');
       setOpen(false);
       setFormData({ name: '', description: '' });
+      setLogoFile(null);
+      setLogoPreview('');
       onStoreCreated?.();
     } catch (error: any) {
       console.error('Error creating store:', error);
@@ -89,6 +128,26 @@ export function CreateStoreDialog({ onStoreCreated, children }: CreateStoreDialo
               placeholder="Descreva sua loja"
               rows={4}
             />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="logo">Logo da Loja</Label>
+            <div className="flex items-center gap-4">
+              <div className="flex-1">
+                <Input
+                  id="logo"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleLogoChange}
+                  className="cursor-pointer"
+                />
+              </div>
+              {logoPreview && (
+                <div className="relative h-16 w-16 overflow-hidden rounded-lg border">
+                  <img src={logoPreview} alt="Preview" className="h-full w-full object-cover" />
+                </div>
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground">Formatos aceitos: JPG, PNG, WEBP</p>
           </div>
           <Button type="submit" disabled={loading} className="w-full">
             {loading ? 'Criando...' : 'Criar Loja'}
