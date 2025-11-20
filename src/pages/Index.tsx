@@ -7,9 +7,16 @@ import { Link } from 'react-router-dom';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { Skeleton } from '@/components/ui/skeleton';
+import { useAuth } from '@/hooks/useAuth';
+import { useUserStore } from '@/hooks/useUserStore';
+import { CreateStoreDialog } from '@/components/CreateStoreDialog';
+import { CreateProductFAB } from '@/components/CreateProductFAB';
 
 const Index = () => {
-  const { data: products, isLoading } = useQuery({
+  const { user } = useAuth();
+  const { store, loading: storeLoading } = useUserStore();
+
+  const { data: products, isLoading, refetch } = useQuery({
     queryKey: ['featured-products'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -83,10 +90,16 @@ const Index = () => {
                 <span className="text-sm font-medium">Suporte 24/7</span>
               </div>
             </div>
-            <div className="flex gap-4">
-              <Button size="lg" asChild>
-                <Link to="/auth">Começar a Vender</Link>
-              </Button>
+            <div className="flex flex-wrap gap-4">
+              {!user ? (
+                <Button size="lg" asChild>
+                  <Link to="/auth">Começar a Vender</Link>
+                </Button>
+              ) : !storeLoading && !store ? (
+                <CreateStoreDialog onStoreCreated={() => window.location.reload()}>
+                  <Button size="lg">Criar Minha Loja</Button>
+                </CreateStoreDialog>
+              ) : null}
               <Button size="lg" variant="outline" asChild>
                 <Link to="/products">Explorar Produtos</Link>
               </Button>
@@ -206,6 +219,8 @@ const Index = () => {
           </div>
         </section>
       </main>
+
+      {user && store && <CreateProductFAB storeId={store.id} />}
     </div>
   );
 };
