@@ -56,15 +56,37 @@ export default function SellerDashboard() {
           </Card>
         </div>
 
-        <Card className="mt-8">
-          <CardHeader>
-            <CardTitle>Comece a Vender</CardTitle>
-          </CardHeader>
-          <CardContent className="text-muted-foreground">
-            Configure sua loja e adicione produtos para começar a vender no Market+.
-            A plataforma retém apenas 2% de comissão em cada venda.
-          </CardContent>
-        </Card>
+        <div className="grid gap-6 md:grid-cols-2 mt-8">
+          <Card>
+            <CardHeader>
+              <CardTitle>Comece a Vender</CardTitle>
+            </CardHeader>
+            <CardContent className="text-muted-foreground">
+              Configure sua loja e adicione produtos para começar a vender no Market+.
+              A plataforma retém apenas 2% de comissão em cada venda.
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader>
+              <CardTitle>Como Sacar Meu Dinheiro</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3 text-sm text-muted-foreground">
+              <p>
+                <strong className="text-foreground">💰 Saldo Disponível:</strong> 98% de cada venda fica disponível para você.
+              </p>
+              <p>
+                <strong className="text-foreground">🏦 Saque:</strong> Acesse a aba "Pagamentos" para configurar sua conta bancária e solicitar saques.
+              </p>
+              <p>
+                <strong className="text-foreground">⏱️ Prazo:</strong> Saques são processados em até 2 dias úteis.
+              </p>
+              <p>
+                <strong className="text-foreground">💵 Valor Mínimo:</strong> R$ 50,00 para solicitar saque.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
       </main>
     </div>
   );
